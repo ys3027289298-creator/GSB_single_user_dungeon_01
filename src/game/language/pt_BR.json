@@ -1,0 +1,142 @@
+{
+    "objects": {
+        "maçã": {
+            "look": "uma fruta vermelha do tamanho de um punho fechado.",
+            "touch": "dura, mas não tanto, e lisa.",
+            "use": "hmmm deliciosa!"
+        },
+        "bota": {
+            "look": "uma bota de couro gasta, rachada e manchada pelo tempo.",
+            "touch": "o couro é áspero e rígido, com partes secas e costuras rachadas.",
+            "use": "você calça... está grande demais, mas dá um certo estilo. Ou não."
+        },
+        "cocô": {
+            "look": "fedorenta, marrom e com alguns pedaços amarelos de milho.",
+            "touch": "é macia, pegajosa e definitivamente nojenta.",
+            "use": "você é doente, sabia disso?"
+        },
+        "rosa": {
+            "look": "uma flor vermelha com espinhos.",
+            "touch": "os espinhos machucam seu dedo!",
+            "use": "você a usa para adornar suas roupas."
+        },
+        "seax": {
+            "look": "espada curta de ferro anglo-saxônica com 72,14 cm de comprimento, gume de um\nlado só e ponta longa e afilada.",
+            "touch": "o toque frio do ferro envelhecido arrepia sua espinha.",
+            "use": "você balança a espada no ar com a ilusão de saber o que está fazendo."
+        },
+        "pardal": {
+            "look": "pássaro pequeno, marrom-acinzentado, com bico grosso.",
+            "touch": "parece delicado.",
+            "use": "Piu-piu! Piu-piu!"
+        }
+    },
+    "rooms": {
+        "1": {
+            "zone": "1",
+            "title": "Porto do Aventureiro Recalcitrante",
+            "description": "A areia cinzenta do porto complementa muito bem o seu aspecto decadente. Muitos aventureiros desembarcam aqui diariamente, atraídos pelas histórias de ouro e glória. Há também muitos pescadores e aldeões da aldeia local fazendo seus trabalhos ou tentando extrair alguma moeda dos recém-chegados.\nO Porto do Aventureiro Recalcitrante tem sido a porta de entrada para todos os tipos de espíritos aventureiros no Reino da Balbúrdia. É claro que esta vasta região não merece ser chamada de \"reino\", mas, sem dúvida, merece o apelido demeritório de \"balbúrdia\", pois é realmente uma terra sem lei. Na verdade, é oficialmente conhecida como \"vastidão\", e há muitos aqui que se declaram reis e príncipes, ou algum outro título.\nEssas potestades governam cidades-estados ou pequenas regiões sobre as quais conseguem impor a sua autoridade. No entanto, no Reino da Balbúrdia nada dura, príncipes caem e se levantam dia após dia.\nA praia se estende de norte a sul, e a leste fica o grande mar por onde chegam os aventureiros. A oeste parece haver uma alfândega.",
+            "exits": {
+                "north": "2",
+                "south": "4",
+                "west": "3"
+            },
+            "spawns": {
+                "rosa": 1,
+                "bota": 1
+            }
+        },
+        "2": {
+            "zone": "1",
+            "title": "Praia do Afogado",
+            "description": "Sem descrição.",
+            "exits": {
+                "south": "1"
+            },
+            "spawns": {
+                "bota": 1
+            }
+        },
+        "3": {
+            "zone": "1",
+            "title": "Alfândega",
+            "description": "Sem descrição.",
+            "exits": {
+                "east": "1"
+            },
+            "spawns": {
+                "maçã": 2
+            }
+        },
+        "4": {
+            "zone": "1",
+            "title": "Praia da Donzela Violada",
+            "description": "Um nome ruim para uma praia, mas adequado para uma história triste, nunca esquecida pelos aldeões. Um lembrete de que nem todos os aventureiros que chegam à essas terras são heróis. Uma árvore solitária, seca e morta, repleta de roupas íntimas femininas balançando ao vento completa a cena.\nAo norte encontra-se o porto, a oeste avista-se uma aldeia.",
+            "exits": {
+                "north": "1",
+                "west": "5"
+            },
+            "spawns": {
+                "pardal": 1
+            }
+        },
+        "5": {
+            "zone": "1",
+            "title": "Aldeia dos Pescadores de Botas",
+            "description": "Sem descrição.",
+            "exits": {
+                "east": "4"
+            },
+            "spawns": {
+                "seax": 1
+            }
+        }
+    },
+    "engine": {
+        "a_item_is_here": "Um(a) %s está aqui.",
+        "an_item_is_here": "Um(a) %s está aqui.",
+        "available_commands": "Comandos disponíveis:\n drop (d), exit (x), get (g), help (h), inventory (i), look (l), move (n,s,e,w),\n quit (q), say (y), status (st), touch (t), use (u)\n\n Para ajuda com um comando específico digite \"help comando\" ou \"h comando\". Por\n exemplo: digite \"help drop\" sem aspas para obter ajuda com o comando drop.",
+        "bye": "Tchau, tchau!",
+        "cant_take": "Você não pode pegar",
+        "char_sheet": "\nFICHA DE PERSONAGEM: %s\n  ST %d\n  DX %d\n  IQ %d\n  HT %d\n",
+        "d": "D\n Alias de drop.",
+        "drop": "DROP\n Larga um item do inventário na área atual.",
+        "e": "E\n Alias de \"move east\".",
+        "exit": "EXIT (aliases: x, quit, q)\n Sai do jogo.",
+        "get": "GET (alias: g)\n Pega um item do chão. Requer um argumento. Podem ser argumentos os nomes dos\n itens no chão.",
+        "g": "G\n Alias de get.",
+        "help": "HELP\n Fornece ajuda em geral, ou sobre um tópico específico.",
+        "help_topic_not_found": "Tópico de ajuda não encontrado.",
+        "h": "H\n Alias de help.",
+        "i": "I\n Alias de inventory.",
+        "inventory_empty": "Seu inventário está vazio.",
+        "inventory": "INVENTORY (alias: i)\n Exibe o inventário.",
+        "item_was_dropped": "%s foi largado.",
+        "l": "L\n Alias de look.",
+        "look": "LOOK (alias: l)\n Mostra o que você vê quando olha ao redor.\n\n look              olha ao redor na sala atual.\n look objeto       olha para um objeto nesta sala.\n look direção      olha para aquela direção (north, south, east, west): você\n                   deve usar \"look north\" em vez de \"look n\", por exemplo.",
+        "move": "MOVE (aliases: n, s, e, w)\n Move em alguma direção. Requer um argumento. Podem ser argumentos: north,\n south, east or west. Exemplo: \"move north\" sem aspas.",
+        "n": "N\n Alias de \"move north\".",
+        "nothing_happens": "Nada acontece.",
+        "nothing_that_way": "Não parece haver coisa alguma naquela direção.",
+        "placed_inventory": "\"%s\" foi colocado(a) em seu inventário.",
+        "q": "Q\n Alias de exit.",
+        "quit": "QUIT\n Alias de exit.",
+        "say": "SAY (alias: y)\n Faz o personagem dizer algo. Requer um argumento. É argumento aquilo que o\n jogador quer que seu personagem fale. Exemplo: \"say kawabonga!\" sem aspas.",
+        "s": "S\n Alias de \"move south\".",
+        "status": "STATUS\n Exibe a sua ficha de personagem.",
+        "st": "ST\n Alias de status.",
+        "there_isnt_around": "Não há \"%s\" ao redor!",
+        "touch": "TOUCH (alias: t)\n Toca em um item no chão. Requer um argumento. Podem ser argumentos os nomes dos\n itens no chão.",
+        "t": "T\n Alias de touch.",
+        "unknown_command": "Comando desconhecido.",
+        "unusable": "Inusável.",
+        "use": "USE (alias: u)\n Usa um item existente no inventário do personagem. Requer um argumento. Podem\n ser argumentos os nomes dos itens no inventário do personagem.",
+        "u": "U\n Alias de use.",
+        "w": "W\n Alias de \"move west\".",
+        "x": "X\n Alias de exit.",
+        "you_not_have": "Você não possui \"%s\".",
+        "your_inventory": "Seu inventário",
+        "you_says": "Você diz: %s",
+        "y": "Y\n Alias de say."
+    }
+}

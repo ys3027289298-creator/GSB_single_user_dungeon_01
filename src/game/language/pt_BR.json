@@ -55,6 +55,9 @@
             },
             "spawns": {
                 "bota": 1
+            },
+            "monsters": {
+                "rato_gigante": 1
             }
         },
         "3": {
@@ -89,6 +92,9 @@
             },
             "spawns": {
                 "seax": 1
+            },
+            "monsters": {
+                "goblin": 1
             }
         }
     },
@@ -138,5 +144,29 @@
         "your_inventory": "Seu inventário",
         "you_says": "Você diz: %s",
         "y": "Y\n Alias de say."
+    },
+    "monsters": {
+        "rato_gigante": {
+            "name": "rato gigante",
+            "look": "um rato do tamanho de um gato, com incisivos amarelados.",
+            "hp": 6,
+            "attack": 2,
+            "defense": 0
+        },
+        "goblin": {
+            "name": "goblin",
+            "look": "um pequeno humanóide de pele verde com uma adaga enferrujada.",
+            "hp": 10,
+            "attack": 3,
+            "defense": 1
+        }
+    },
+    "quests": {
+        "problema_de_rato": {
+            "name": "Problema de Rato",
+            "description": "Elimine o rato gigante na Praia do Homem Afogado.",
+            "target": "rato_gigante",
+            "count": 1
+        }
     }
 }

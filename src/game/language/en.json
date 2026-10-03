@@ -55,6 +55,9 @@
             },
             "spawns": {
                 "boot": 1
+            },
+            "monsters": {
+                "giant_rat": 1
             }
         },
         "3": {
@@ -89,6 +92,9 @@
             },
             "spawns": {
                 "seax": 1
+            },
+            "monsters": {
+                "goblin": 1
             }
         }
     },
@@ -138,5 +144,29 @@
         "your_inventory": "Your inventory",
         "you_says": "You says: %s",
         "y": "Y\n Alias of say."
+    },
+    "monsters": {
+        "giant_rat": {
+            "name": "giant rat",
+            "look": "a rat the size of a cat, with yellowed incisors.",
+            "hp": 6,
+            "attack": 2,
+            "defense": 0
+        },
+        "goblin": {
+            "name": "goblin",
+            "look": "a small green-skinned humanoid with a rusty dagger.",
+            "hp": 10,
+            "attack": 3,
+            "defense": 1
+        }
+    },
+    "quests": {
+        "rat_problem": {
+            "name": "Rat Problem",
+            "description": "Clear the giant rat from Drowned Man's Beach.",
+            "target": "giant_rat",
+            "count": 1
+        }
     }
 }

@@ -4,6 +4,12 @@ import os
 import pathlib
 
 
+# Raised when static world data (rooms, objects, monsters, quests) is
+# missing required fields or is internally inconsistent.
+class WorldDataError(Exception):
+    pass
+
+
 # FORMATTED TEXT
 # span('text red in italic', 'red', 'i')
 def span(txt='missing text', color='', style=''):
@@ -69,10 +75,23 @@ LANGUAGE_DIR = BASE_DIR / "language"
 locale_code = locale.getdefaultlocale()[0] or "en"
 lang_file = LANGUAGE_DIR / f"{locale_code}.json"
 
+
+def _unique_object_pairs(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise WorldDataError(f"Duplicate id '{key}' in language file.")
+        result[key] = value
+    return result
+
+
+def load_language_file(path):
+    with open(path, encoding="utf-8") as file:
+        return json.load(file, object_pairs_hook=_unique_object_pairs)
+
+
 # Load language file, fallback to English if not found
 try:
-    with open(lang_file, encoding="utf-8") as file:
-        language = json.load(file)
+    language = load_language_file(lang_file)
 except FileNotFoundError:
-    with open(LANGUAGE_DIR / "en.json", encoding="utf-8") as file:
-        language = json.load(file)
+    language = load_language_file(LANGUAGE_DIR / "en.json")

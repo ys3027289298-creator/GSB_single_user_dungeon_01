@@ -19,13 +19,16 @@ format:
 	black src tests
 	ruff --fix src tests
 
-# Roda testes (placeholder, ainda não tem testes)
+# Roda testes (pytest se disponível, senão unittest da stdlib)
 test:
-	pytest
+	@if python3 -c "import pytest" 2>/dev/null; then \
+		PYTHONPATH=src python3 -m pytest tests -q; \
+	else \
+		PYTHONPATH=src python3 -m unittest discover -s tests -t . -v; \
+	fi
 
 # Limpa arquivos inúteis
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	rm -rf .mypy_cache .ruff_cache .pyright .coverage dist build *.egg-info
-

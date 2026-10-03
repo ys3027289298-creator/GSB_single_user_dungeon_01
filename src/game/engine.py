@@ -1,3 +1,5 @@
+import json
+import random
 import sys
 
 from game.libraries import *
@@ -33,6 +35,8 @@ class SudPlayer:
         self.DX = 10
         self.IQ = 10
         self.HT = 10
+        self.hp = self.HT
+        self.quests = {}
     
     def drop(self, name):
         if name in self.inventory:
@@ -52,6 +56,32 @@ class SudPlayer:
     def status(self, args):
         status = engine["char_sheet"] % (self.name, self.ST, self.DX, self.IQ, self.HT)
         return status
+
+    @property
+    def is_alive(self):
+        return self.hp > 0
+
+    @property
+    def attack_power(self):
+        return self.ST // 2
+
+    @property
+    def defense(self):
+        return self.DX // 3
+
+    def start_quest(self, quest_id):
+        self.quests[quest_id] = {"state": "active", "progress": 0}
+
+    def update_quests_on_kill(self, monster_id, quests_data):
+        completed = []
+        for quest_id, quest_def in quests_data.items():
+            state = self.quests.get(quest_id)
+            if state and state["state"] == "active" and quest_def["target"] == monster_id:
+                state["progress"] += 1
+                if state["progress"] >= int(quest_def["count"]):
+                    state["state"] = "completed"
+                    completed.append(quest_id)
+        return completed
 
     def take(self, obj):
         if obj.name in self.inventory:
@@ -75,9 +105,19 @@ class SudPlayer:
 class SudArea:
     def __init__(self, sight):
         self.objects = {}
+        self.monsters = {}
         self.panorama = {}
         self.sight = sight
         self.inverted_directions = {'north':'south', 'south':'north', 'east':'west', 'west':'east'}
+
+    def addMonster(self, monster):
+        self.monsters[monster.id] = monster
+
+    def getMonster(self, monster_id):
+        return self.monsters.get(monster_id)
+
+    def removeMonster(self, monster_id):
+        return self.monsters.pop(monster_id, None)
 
     def addArea(self, direction, area):
         area.panorama[self.inverted_directions[direction]] = self
@@ -275,3 +315,280 @@ class SudGame:
             result = span(engine["unknown_command"], 'red') + "\n\n " + engine["available_commands"] + "\n"
         
         print(result)
+
+
+# CLASS MONSTER ================================================================
+class SudMonster:
+    def __init__(self, monster_id, data):
+        self.id = monster_id
+        self.name = data["name"]
+        self.look = data.get("look", "")
+        self.max_hp = int(data["hp"])
+        self.hp = self.max_hp
+        self.attack = int(data["attack"])
+        self.defense = int(data["defense"])
+
+    @property
+    def is_alive(self):
+        return self.hp > 0
+
+
+# COMBAT =======================================================================
+def resolve_combat(player, monster, quests=None, rng=None):
+    rng = rng if rng is not None else random.Random()
+    rounds = 0
+    log = []
+    while player.is_alive and monster.is_alive:
+        rounds += 1
+        damage = max(1, player.attack_power - monster.defense) + rng.randint(0, 2)
+        monster.hp = max(0, monster.hp - damage)
+        log.append(("player", damage, monster.hp))
+        if not monster.is_alive:
+            break
+        damage = max(1, monster.attack - player.defense) + rng.randint(0, 2)
+        player.hp = max(0, player.hp - damage)
+        log.append(("monster", damage, player.hp))
+
+    result = {
+        "winner": "player" if player.is_alive else "monster",
+        "rounds": rounds,
+        "log": log,
+        "completed_quests": [],
+    }
+    if not monster.is_alive and quests:
+        result["completed_quests"] = player.update_quests_on_kill(monster.id, quests)
+    return result
+
+
+# WORLD BUILDING ===============================================================
+REQUIRED_ROOM_FIELDS = ("title", "description", "exits", "spawns")
+REQUIRED_MONSTER_FIELDS = ("name", "hp", "attack", "defense")
+REQUIRED_QUEST_FIELDS = ("name", "description", "target", "count")
+VALID_DIRECTIONS = frozenset(("north", "south", "east", "west"))
+
+
+def validate_world_data(language):
+    rooms = language.get("rooms", {})
+    objects = language.get("objects", {})
+    monsters = language.get("monsters", {})
+    quests = language.get("quests", {})
+
+    for room_id, room in rooms.items():
+        for field in REQUIRED_ROOM_FIELDS:
+            if field not in room:
+                raise WorldDataError(
+                    f"Room '{room_id}' is missing required field '{field}'."
+                )
+        for direction, target in room["exits"].items():
+            if direction not in VALID_DIRECTIONS:
+                raise WorldDataError(
+                    f"Room '{room_id}' has unknown exit direction '{direction}'."
+                )
+            if target not in rooms:
+                raise WorldDataError(
+                    f"Room '{room_id}' exit '{direction}' points to undefined"
+                    f" room '{target}'."
+                )
+        for object_id in room["spawns"]:
+            if object_id not in objects:
+                raise WorldDataError(
+                    f"Room '{room_id}' spawns undefined object '{object_id}'."
+                )
+        for monster_id in room.get("monsters", {}):
+            if monster_id not in monsters:
+                raise WorldDataError(
+                    f"Room '{room_id}' spawns undefined monster '{monster_id}'."
+                )
+
+    for monster_id, monster in monsters.items():
+        for field in REQUIRED_MONSTER_FIELDS:
+            if field not in monster:
+                raise WorldDataError(
+                    f"Monster '{monster_id}' is missing required field '{field}'."
+                )
+        if int(monster["hp"]) <= 0:
+            raise WorldDataError(f"Monster '{monster_id}' must have positive hp.")
+        if int(monster["attack"]) < 0 or int(monster["defense"]) < 0:
+            raise WorldDataError(
+                f"Monster '{monster_id}' attack/defense must be >= 0."
+            )
+
+    for quest_id, quest in quests.items():
+        for field in REQUIRED_QUEST_FIELDS:
+            if field not in quest:
+                raise WorldDataError(
+                    f"Quest '{quest_id}' is missing required field '{field}'."
+                )
+        if quest["target"] not in monsters:
+            raise WorldDataError(
+                f"Quest '{quest_id}' targets undefined monster '{quest['target']}'."
+            )
+        if int(quest["count"]) < 1:
+            raise WorldDataError(f"Quest '{quest_id}' count must be >= 1.")
+
+
+def build_world(language):
+    validate_world_data(language)
+
+    objects_dic = {}
+    for i in language["objects"]:
+        objects_dic[i] = SudObject(
+            i,
+            language["objects"][i]["look"],
+            language["objects"][i]["touch"],
+            language["objects"][i]["use"]
+        )
+
+    rooms_dic = {}
+    for i in language["rooms"]:
+        room = language["rooms"][i]
+        sight = room["title"] + "\n" + room["description"]
+        rooms_dic[i] = SudArea(sight)
+
+    for room in language["rooms"]:
+        for spawn, quantity in language["rooms"][room]["spawns"].items():
+            for _ in range(int(quantity)):
+                rooms_dic[room].addObject(objects_dic[spawn])
+        for monster_id, quantity in language["rooms"][room].get("monsters", {}).items():
+            for _ in range(int(quantity)):
+                rooms_dic[room].addMonster(SudMonster(monster_id, language["monsters"][monster_id]))
+
+    for room in rooms_dic:
+        exits = language["rooms"][room]["exits"]
+        for direction in exits:
+            rooms_dic[room].addArea(direction, rooms_dic[exits[direction]])
+
+    return objects_dic, rooms_dic
+
+
+# SAVE / LOAD ==================================================================
+class SaveGameError(Exception):
+    pass
+
+
+SAVE_VERSION = 1
+
+
+def save_game(player, current_room_id, rooms_dic, path):
+    data = {
+        "version": SAVE_VERSION,
+        "current_room": current_room_id,
+        "player": {
+            "name": player.name,
+            "ST": player.ST,
+            "DX": player.DX,
+            "IQ": player.IQ,
+            "HT": player.HT,
+            "hp": player.hp,
+            "inventory": {
+                name: entry["quantity"]
+                for name, entry in player.inventory.items()
+            },
+            "quests": player.quests,
+        },
+        "rooms": {
+            room_id: {
+                "objects": {
+                    name: entry["quantity"]
+                    for name, entry in room.objects.items()
+                },
+                "monsters": {
+                    monster_id: monster.hp
+                    for monster_id, monster in room.monsters.items()
+                },
+            }
+            for room_id, room in rooms_dic.items()
+        },
+    }
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=2)
+
+
+def load_game(path, language):
+    try:
+        with open(path, encoding="utf-8") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        return None
+    except json.JSONDecodeError as exc:
+        raise SaveGameError(f"Save file '{path}' is corrupted: {exc}") from exc
+
+    try:
+        version = data["version"]
+        current_room_id = data["current_room"]
+        player_data = data["player"]
+        rooms_data = data["rooms"]
+    except (KeyError, TypeError) as exc:
+        raise SaveGameError(
+            f"Save file '{path}' is missing required data: {exc}"
+        ) from exc
+
+    if version != SAVE_VERSION:
+        raise SaveGameError(
+            f"Save file version {version} is not supported"
+            f" (expected {SAVE_VERSION})."
+        )
+
+    objects_dic, rooms_dic = build_world(language)
+
+    if current_room_id not in rooms_dic:
+        raise SaveGameError(
+            f"Save file references unknown room '{current_room_id}'."
+        )
+
+    if not isinstance(player_data, dict) or "name" not in player_data:
+        raise SaveGameError(f"Save file '{path}' has no valid player data.")
+
+    player = SudPlayer(player_data["name"])
+    for stat in ("ST", "DX", "IQ", "HT"):
+        setattr(player, stat, int(player_data.get(stat, getattr(player, stat))))
+    player.hp = int(player_data.get("hp", player.HT))
+
+    for name, quantity in player_data.get("inventory", {}).items():
+        if name not in objects_dic:
+            raise SaveGameError(f"Save file references unknown object '{name}'.")
+        player.inventory[name] = {
+            "object": objects_dic[name],
+            "quantity": int(quantity),
+        }
+
+    quests_data = language.get("quests", {})
+    for quest_id, state in player_data.get("quests", {}).items():
+        if quest_id not in quests_data:
+            raise SaveGameError(f"Save file references unknown quest '{quest_id}'.")
+        if state.get("state") not in ("active", "completed"):
+            raise SaveGameError(
+                f"Save file has invalid state for quest '{quest_id}'."
+            )
+        player.quests[quest_id] = {
+            "state": state["state"],
+            "progress": int(state.get("progress", 0)),
+        }
+
+    for room_id, room_state in rooms_data.items():
+        if room_id not in rooms_dic:
+            raise SaveGameError(f"Save file references unknown room '{room_id}'.")
+        room = rooms_dic[room_id]
+
+        objects = {}
+        for name, quantity in room_state.get("objects", {}).items():
+            if name not in objects_dic:
+                raise SaveGameError(
+                    f"Save file references unknown object '{name}'."
+                )
+            objects[name] = {"object": objects_dic[name], "quantity": int(quantity)}
+        room.objects = objects
+
+        monsters = {}
+        for monster_id, hp in room_state.get("monsters", {}).items():
+            monster = room.monsters.get(monster_id)
+            if monster is None:
+                raise SaveGameError(
+                    f"Save file references unknown monster '{monster_id}'"
+                    f" in room '{room_id}'."
+                )
+            monster.hp = int(hp)
+            monsters[monster_id] = monster
+        room.monsters = monsters
+
+    return player, current_room_id, rooms_dic

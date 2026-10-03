@@ -53,6 +53,51 @@ $ python3 -m game.main
 
 ---
 
+## World data (libraries)
+
+Each language JSON provides the world definition in sections of `id -> attributes`:
+
+- `objects` — item definitions (`look`, `touch`, `use`).
+- `rooms` — room definitions (`title`, `description`, `exits`, `spawns`, optional `monsters`).
+- `monsters` — monster definitions (`name`, `hp`, `attack`, `defense`, optional `look`).
+- `quests` — kill-quest definitions (`name`, `description`, `target` monster, `count`).
+
+`game.engine.build_world(language)` validates the data and builds objects,
+rooms (with exits linked and monsters spawned) ready for `SudGame`.
+`game.engine.save_game(...)` / `game.engine.load_game(...)` persist and restore
+the full run state (player stats, hp, inventory, quests, current room, and
+per-room object/monster state) as JSON.
+
+### Missing data: error or degrade?
+
+| Situation | Policy | Behavior |
+| --- | --- | --- |
+| Room missing `exits`/`spawns`, exit to undefined room, unknown direction, spawn of undefined object/monster | **Error** | `WorldDataError` at load/validation time (fail fast) |
+| Duplicate ids in a language JSON | **Error** | `WorldDataError` raised by the loader (JSON would otherwise silently keep the last duplicate) |
+| Monster/quest missing required fields, non-positive `hp` | **Error** | `WorldDataError` at validation time |
+| Optional monster `look` missing | **Degrade** | Defaults to empty string |
+| Player walks where no exit exists, takes/uses missing items | **Degrade** | Friendly message, game continues |
+| Save file does not exist | **Degrade** | `load_game` returns `None` |
+| Save file corrupted, wrong version, or references unknown ids | **Error** | `SaveGameError` (a half-restored state is never trusted) |
+
+Rationale: broken *static data* is a content bug and must fail fast instead of
+silently producing an inconsistent world; *runtime player actions* and a missing
+save are recoverable situations and degrade gracefully.
+
+---
+
+## Tests
+
+```bash
+$ make test          # pytest if installed, otherwise stdlib unittest
+```
+
+Covers data integrity (validation + duplicate ids), map traversal
+(reachability, exit symmetry, out-of-bounds moves), combat resolution
+(deterministic, seedable RNG), and save/load round-trips.
+
+---
+
 ## License
 
 MIT License — see [LICENSE](https://github.com/nerun/single-user-dungeon/raw/main/LICENSE)

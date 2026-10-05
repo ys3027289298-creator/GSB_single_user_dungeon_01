@@ -53,6 +53,46 @@ $ python3 -m game.main
 
 ---
 
+## Data Integrity Policy
+
+The engine validates all game data at load time (`game.engine.validate_language`,
+called by `game.engine.build_world`). The rule is:
+
+**Fail fast (raises `DataIntegrityError`)** — structural problems that would
+corrupt the game silently:
+
+- a room missing `exits`/`title`/`spawns` (a dead end must say `"exits": {}`);
+- duplicate object/room/monster ids in a JSON file (plain `json` would
+  silently drop one);
+- an exit pointing to an undefined room, or two rooms claiming contradictory
+  reciprocal exits;
+- a monster missing combat attributes (`ST`, `DX`, `IQ`, `HT`, `damage`);
+- a corrupt, outdated or inconsistent save file.
+
+**Degrade gracefully** — problems the player can safely survive:
+
+- missing optional flavor text (`description`, object `look`/`touch`/`use`,
+  monster `look`) falls back to default engine text;
+- runtime actions with no valid target (walking into a wall, taking an item
+  that is not there) return an in-game message instead of raising.
+
+Save files (`SudGame.save` / `SudGame.load`) snapshot the live state: player
+attributes and inventory, per-room object quantities, monster HP/alive flags
+and quest states — so picked-up items stay picked up and completed quests stay
+completed after a load.
+
+---
+
+## Tests
+
+```bash
+$ PYTHONPATH=src python3 -m unittest discover -s tests
+```
+
+Covers data integrity, map traversal, combat resolution and save round-trips.
+
+---
+
 ## License
 
 MIT License — see [LICENSE](https://github.com/nerun/single-user-dungeon/raw/main/LICENSE)

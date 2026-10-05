@@ -4,6 +4,32 @@ import os
 import pathlib
 
 
+# Raised when game data (language files, save files) is structurally invalid.
+# Policy: data integrity problems fail fast at load time; only optional
+# flavor fields and runtime player actions degrade gracefully.
+class DataIntegrityError(Exception):
+    pass
+
+
+def _reject_duplicate_object_ids(pairs):
+    # json silently keeps the last of duplicate keys; refuse that data loss.
+    seen = set()
+    result = {}
+    for key, value in pairs:
+        if key in seen:
+            raise DataIntegrityError(
+                'duplicate id "%s" in game data file' % (key,)
+            )
+        seen.add(key)
+        result[key] = value
+    return result
+
+
+def load_language_file(path):
+    with open(path, encoding="utf-8") as file:
+        return json.load(file, object_pairs_hook=_reject_duplicate_object_ids)
+
+
 # FORMATTED TEXT
 # span('text red in italic', 'red', 'i')
 def span(txt='missing text', color='', style=''):
@@ -71,8 +97,6 @@ lang_file = LANGUAGE_DIR / f"{locale_code}.json"
 
 # Load language file, fallback to English if not found
 try:
-    with open(lang_file, encoding="utf-8") as file:
-        language = json.load(file)
+    language = load_language_file(lang_file)
 except FileNotFoundError:
-    with open(LANGUAGE_DIR / "en.json", encoding="utf-8") as file:
-        language = json.load(file)
+    language = load_language_file(LANGUAGE_DIR / "en.json")

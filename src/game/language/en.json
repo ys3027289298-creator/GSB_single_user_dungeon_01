@@ -92,6 +92,26 @@
             }
         }
     },
+    "monsters": {
+        "goblin": {
+            "name": "goblin",
+            "look": "a wiry green-skinned goblin, brandishing a rusty shiv.",
+            "ST": 8,
+            "DX": 12,
+            "IQ": 6,
+            "HT": 8,
+            "damage": 3
+        }
+    },
+    "encounters": {
+        "4": ["goblin"]
+    },
+    "quests": {
+        "arm-yourself": {
+            "name": "Arm yourself",
+            "target": {"type": "item", "id": "seax", "count": 1}
+        }
+    },
     "engine": {
         "a_item_is_here": "A %s is here.",
         "an_item_is_here": "An %s is here.",
@@ -114,8 +134,10 @@
         "item_was_dropped": "%s was dropped.",
         "l": "L\n Alias of look.",
         "look": "LOOK (alias: l)\n Show what you see when you look around.\n\n look              look around in the current room.\n look object       look at an object lying in this room.\n look direction    look in that direction (north, south, east, west): you must\n                   use \"look north\" instead of \"look n\", for example.",
+        "monster_is_here": "A %s is here, and it does not look friendly.",
         "move": "MOVE (aliases: n, s, e, w)\n Moves in some direction. Requires an argument. Arguments can be: north, south,\n east or west. Example: \"move north\" without quotes.",
         "n": "N\n Alias of \"move north\".",
+        "no_description": "No description.",
         "nothing_happens": "Nothing happens.",
         "nothing_that_way": "There seems to be nothing that way.",
         "placed_inventory": "\"%s\" has been placed in your inventory.",

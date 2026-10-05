@@ -92,6 +92,26 @@
             }
         }
     },
+    "monsters": {
+        "goblin": {
+            "name": "goblin",
+            "look": "um goblin esguio de pele esverdeada, brandindo uma faca enferrujada.",
+            "ST": 8,
+            "DX": 12,
+            "IQ": 6,
+            "HT": 8,
+            "damage": 3
+        }
+    },
+    "encounters": {
+        "4": ["goblin"]
+    },
+    "quests": {
+        "arm-yourself": {
+            "name": "Arme-se",
+            "target": {"type": "item", "id": "seax", "count": 1}
+        }
+    },
     "engine": {
         "a_item_is_here": "Um(a) %s está aqui.",
         "an_item_is_here": "Um(a) %s está aqui.",
@@ -114,8 +134,10 @@
         "item_was_dropped": "%s foi largado.",
         "l": "L\n Alias de look.",
         "look": "LOOK (alias: l)\n Mostra o que você vê quando olha ao redor.\n\n look              olha ao redor na sala atual.\n look objeto       olha para um objeto nesta sala.\n look direção      olha para aquela direção (north, south, east, west): você\n                   deve usar \"look north\" em vez de \"look n\", por exemplo.",
+        "monster_is_here": "Um %s está aqui, e não parece amigável.",
         "move": "MOVE (aliases: n, s, e, w)\n Move em alguma direção. Requer um argumento. Podem ser argumentos: north,\n south, east or west. Exemplo: \"move north\" sem aspas.",
         "n": "N\n Alias de \"move north\".",
+        "no_description": "Sem descrição.",
         "nothing_happens": "Nada acontece.",
         "nothing_that_way": "Não parece haver coisa alguma naquela direção.",
         "placed_inventory": "\"%s\" foi colocado(a) em seu inventário.",
